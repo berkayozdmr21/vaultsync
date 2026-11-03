@@ -28,4 +28,4 @@ Manifest'e girmeden önce tüm chunk'lar okunur ve her dosya hash/boyutu doğrul
 
 Metadata: Devices, Chunks, Snapshots, Audits. Chunks içerik-adresli ortak kasadır; kaynak anahtarları aynı güven sınırının ajanlarıdır. Hash varlık sorgusu ortak dedup bilgisini açığa çıkarabilir; çok tenant izolasyonu iddiası yoktur.
 
-AES envelope: 12-byte nonce + 16-byte tag + ciphertext. AAD=ASCII SHA-256. Anahtar server-side 32-byte dosyadır. Plaintext anahtar veya nesne HTTP response'una alınmaz; dosya restore sırasında yetkili istemciye plaintext aktarılır. Anahtar kaybı bütün şifreli nesneleri etkiler. SQLite metadata + object files + master.key veya PostgreSQL dump + S3 objects + master.key birlikte yedeklenmelidir.
+AES envelope: 12-byte nonce + 16-byte tag + ciphertext. AAD=ASCII SHA-256. Anahtar server-side 32-byte dosyadır. Master key hiçbir HTTP yanıtında dönmez; dosya restore sırasında yetkili istemciye plaintext aktarılır. Anahtar kaybı bütün şifreli nesneleri etkiler. SQLite metadata + object files + master.key veya PostgreSQL dump + S3 objects + master.key birlikte yedeklenmelidir.

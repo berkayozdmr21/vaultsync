@@ -27,7 +27,8 @@ var vault = new ObjectVault(config, scopes);
 var bytes = System.Text.Encoding.UTF8.GetBytes("key-loss regression fixture");
 var hash = ObjectVault.Hash(bytes);
 await vault.Put(hash, bytes);
-if (!bytes.SequenceEqual(await vault.Get(hash)))
+var roundtrip = await vault.Get(hash);
+if (!bytes.SequenceEqual(roundtrip))
     throw new Exception("Initial encrypted roundtrip failed");
 using (var scope = provider.CreateScope())
 {
@@ -54,6 +55,7 @@ finally
     await File.WriteAllBytesAsync(keyPath, original);
 }
 var reopened = new ObjectVault(config, scopes);
-if (!bytes.SequenceEqual(await reopened.Get(hash)))
+var restored = await reopened.Get(hash);
+if (!bytes.SequenceEqual(restored))
     throw new Exception("Restored key cannot read existing data");
 Console.WriteLine("PASS: restoring the original key restores access");
