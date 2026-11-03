@@ -104,6 +104,7 @@ function App() {
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<Manifest | null>(null),
     [query, setQuery] = useState(""),
+    [fileQuery, setFileQuery] = useState(""),
     [filter, setFilter] = useState("all"),
     [retention, setRetention] = useState<{
       candidates: unknown[];
@@ -145,6 +146,7 @@ function App() {
   useEffect(() => {
     setDiff(null);
     setVerified(false);
+    setFileQuery("");
   }, [selected?.id]);
   if (login)
     return (
@@ -749,23 +751,44 @@ function App() {
                 ))}
               </div>
             )}
+            <label className="manifest-search">
+              Bu sürümde dosya ara
+              <input
+                type="search"
+                placeholder="Dosya adı veya klasör yolu"
+                value={fileQuery}
+                onChange={(e) => setFileQuery(e.target.value)}
+              />
+            </label>
             <div className="manifest">
-              {selected.files.map((f) => (
-                <a
-                  key={f.path}
-                  href={`/api/snapshots/${selected.id}/file?path=${encodeURIComponent(f.path)}`}
-                >
-                  <Files size={16} />
-                  <span>
-                    {f.path}
-                    <small>
-                      {f.hash.slice(0, 16)} · {f.chunks.length} parça
-                    </small>
-                  </span>
-                  <b>{size(f.bytes)}</b>
-                  <ArrowDownToLine size={15} />
-                </a>
-              ))}
+              {selected.files
+                .filter((f) =>
+                  f.path
+                    .toLocaleLowerCase("tr-TR")
+                    .includes(fileQuery.trim().toLocaleLowerCase("tr-TR")),
+                )
+                .map((f) => (
+                  <a
+                    key={f.path}
+                    href={`/api/snapshots/${selected.id}/file?path=${encodeURIComponent(f.path)}`}
+                  >
+                    <Files size={16} />
+                    <span>
+                      {f.path}
+                      <small>
+                        {f.hash.slice(0, 16)} · {f.chunks.length} parça
+                      </small>
+                    </span>
+                    <b>{size(f.bytes)}</b>
+                    <ArrowDownToLine size={15} />
+                  </a>
+                ))}
+              {selected.files.length > 0 &&
+                !selected.files.some((f) =>
+                  f.path
+                    .toLocaleLowerCase("tr-TR")
+                    .includes(fileQuery.trim().toLocaleLowerCase("tr-TR")),
+                ) && <p role="status">Bu aramayla eşleşen dosya bulunamadı.</p>}
               {selected.files.length === 0 && (
                 <p>Bu sürüm boş klasör durumunu temsil eder.</p>
               )}
