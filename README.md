@@ -109,6 +109,7 @@ API ve derlenmiş ajan açıkken:
 ```powershell
 $env:DOTNET_EXE='dotnet'
 $env:TEST_VAULT='<API VaultPath dizininin mutlak yolu>'
+dotnet run --project tests/VaultSync.StorageTests.csproj
 npm test
 npm run build
 ```

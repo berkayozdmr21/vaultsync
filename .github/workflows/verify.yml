@@ -50,6 +50,7 @@ jobs:
           dotnet backend/bin/Debug/net10.0/VaultSync.Api.dll --urls http://127.0.0.1:9251 > .runtime/api.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:9251/health && exit 0; sleep 1; done
           cat .runtime/api.log; exit 1
+      - run: dotnet run --project tests/VaultSync.StorageTests.csproj
       - run: npm test
       - run: npm run build
       - name: Browser workflows

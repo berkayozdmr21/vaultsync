@@ -12,13 +12,18 @@ public class ObjectVault
     readonly IMinioClient? s3;
     readonly string bucket;
 
-    public ObjectVault(IConfiguration c)
+    public ObjectVault(IConfiguration c, IServiceScopeFactory scopes)
     {
         root = Path.GetFullPath(c["VaultPath"] ?? ".runtime/live/vault");
         Directory.CreateDirectory(root);
         var keyFile = Path.Combine(root, "master.key");
         if (!File.Exists(keyFile))
         {
+            using var scope = scopes.CreateScope();
+            if (scope.ServiceProvider.GetRequiredService<VaultDb>().Chunks.Any())
+                throw new InvalidOperationException(
+                    "Vault master key is missing for existing data. Restore the original key; a replacement will not be generated."
+                );
             using var f = new FileStream(keyFile, FileMode.CreateNew);
             f.Write(RandomNumberGenerator.GetBytes(32));
             if (!OperatingSystem.IsWindows())
