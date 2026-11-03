@@ -1,4 +1,4 @@
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 await mkdir(".runtime/screenshots", { recursive: true });
@@ -21,6 +21,7 @@ try {
     .first()
     .click();
   const fileLinks = page.locator(".manifest a");
+  await fileLinks.first().waitFor();
   const initialCount = await fileLinks.count();
   assert.ok(initialCount > 0);
   const firstPath = (await fileLinks.first().getAttribute("href")).split(
@@ -28,15 +29,15 @@ try {
   )[1];
   const search = page.getByRole("searchbox", { name: "Bu sürümde dosya ara" });
   await search.fill(decodeURIComponent(firstPath));
-  assert.equal(await fileLinks.count(), 1);
+  await expect(fileLinks).toHaveCount(1);
   await search.fill("no-matching-file-xyz");
   await page
     .getByRole("status")
     .filter({ hasText: "Bu aramayla eşleşen dosya bulunamadı." })
     .waitFor();
-  assert.equal(await fileLinks.count(), 0);
+  await expect(fileLinks).toHaveCount(0);
   await search.fill("");
-  assert.equal(await fileLinks.count(), initialCount);
+  await expect(fileLinks).toHaveCount(initialCount);
   await page
     .getByRole("button", { name: "Önceki sürümle karşılaştır" })
     .click();
