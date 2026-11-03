@@ -4,6 +4,18 @@
 
 VaultSync, klasör değişikliklerini takip eden bir .NET ajanı, şifreli parça deposu ve React yönetim panelinden oluşan sürümlü yedekleme platformudur. Aynı içerik tekrar aktarılmaz; bir sürüm ancak tüm dosyalar doğrulandıktan sonra görünür olur.
 
+![VaultSync kontrol paneli](docs/images/overview.png)
+
+<details><summary>Sürüm inceleme ve telefon görünümü</summary>
+
+![Sürüm karşılaştırması](docs/images/version.png)
+
+<img src="docs/images/mobile.png" width="360" alt="390px telefon görünümü"/>
+
+</details>
+
+Ekranlar otomatik testlerde oluşturulan örnek kaynakları gösterir; kişisel dosya kullanılmaz.
+
 ## Neler yapar?
 
 - **Artımlı aktarım:** dosyaları sabit 1 MiB parçalara ayırır; SHA-256 kimlikleriyle eksik parçaları sorar ve yalnız onları yükler.
