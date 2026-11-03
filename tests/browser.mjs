@@ -20,6 +20,23 @@ try {
     .getByRole("button", { name: "İncele", exact: false })
     .first()
     .click();
+  const fileLinks = page.locator(".manifest a");
+  const initialCount = await fileLinks.count();
+  assert.ok(initialCount > 0);
+  const firstPath = (await fileLinks.first().getAttribute("href")).split(
+    "path=",
+  )[1];
+  const search = page.getByRole("searchbox", { name: "Bu sürümde dosya ara" });
+  await search.fill(decodeURIComponent(firstPath));
+  assert.equal(await fileLinks.count(), 1);
+  await search.fill("no-matching-file-xyz");
+  await page
+    .getByRole("status")
+    .filter({ hasText: "Bu aramayla eşleşen dosya bulunamadı." })
+    .waitFor();
+  assert.equal(await fileLinks.count(), 0);
+  await search.fill("");
+  assert.equal(await fileLinks.count(), initialCount);
   await page
     .getByRole("button", { name: "Önceki sürümle karşılaştır" })
     .click();
