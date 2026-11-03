@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: vaultsync
+      POSTGRES_USER: vaultsync
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [vault-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U vaultsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DatabaseProvider: Postgres
+      ConnectionStrings__Default: Host=db;Database=vaultsync;Username=vaultsync;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      OwnerKey: ${VAULTSYNC_OWNER_KEY:?Set VAULTSYNC_OWNER_KEY}
+      PublicOrigin: http://127.0.0.1:9250
+    volumes: [vault-objects:/data]
+    ports: ["127.0.0.1:9251:8080"]
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports: ["127.0.0.1:9250:80"]
+    depends_on: [api]
+volumes:
+  vault-db:
+  vault-objects:

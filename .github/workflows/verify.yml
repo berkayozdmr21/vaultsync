@@ -1,0 +1,82 @@
+name: Verify VaultSync
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: vaultsync-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [Sqlite, Postgres]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: vaultsync
+          POSTGRES_PASSWORD: ci-test-password
+          POSTGRES_DB: vaultsync
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vaultsync"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      DatabaseProvider: ${{ matrix.database }}
+      ConnectionStrings__Default: Host=localhost;Database=vaultsync;Username=vaultsync;Password=ci-test-password
+      DataPath: /tmp/vaultsync
+      VaultPath: /tmp/vaultsync/vault
+      TEST_VAULT: /tmp/vaultsync/vault
+      Logging__LogLevel__Default: Warning
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: dotnet build backend && dotnet build agent
+      - name: Start API
+        run: |
+          mkdir -p .runtime/screenshots
+          dotnet backend/bin/Debug/net10.0/VaultSync.Api.dll --urls http://127.0.0.1:9251 > .runtime/api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:9251/health && exit 0; sleep 1; done
+          cat .runtime/api.log; exit 1
+      - run: npm test
+      - run: npm run build
+      - name: Browser workflows
+        if: matrix.database == 'Sqlite'
+        run: |
+          npx playwright install --with-deps chromium
+          npm run dev > .runtime/web.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:9250/ > /dev/null && break; sleep 1; done
+          node tests/browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.database == 'Sqlite'
+        with:
+          name: vaultsync-browser
+          path: .runtime/screenshots/*.png
+          include-hidden-files: true
+          retention-days: 7
+  agent:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet publish agent -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o .runtime/agent-win-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vaultsync-agent-windows-x64
+          path: .runtime/agent-win-x64/
+          include-hidden-files: true
+          retention-days: 7
