@@ -54,6 +54,10 @@ Development giriş anahtarı `vaultsync-local-dev`. Production ortamında `Owner
 
 Yeni klonda pano boş başlar. **Cihaz bağla** ile bir kaynak oluşturun; gösterilen anahtarı güvenli kaydedin. Anahtar yeniden gösterilmez.
 
+## Örnek çalışma alanı
+
+Boş panoyu gerçek ajanla üretilen tanıtım verisiyle doldurmak için, API açık ve ajan derlenmişken Python 3 ile `python scripts/seed-demo.py` çalıştırılabilir. Betik yalnız loopback API kabul eder; üç örnek kaynak ve sekiz gerçek snapshot üretir. Gerçek kişisel dosya kullanmaz ve cihaz anahtarlarını diske yazmaz. Tekrar çalıştırmak yeni kaynaklar ekler. `DOTNET_EXE` ile özel .NET yolu seçilebilir.
+
 ## Ajan
 
 ```powershell
